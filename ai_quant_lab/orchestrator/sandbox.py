@@ -45,6 +45,10 @@ _ALLOWED_IMPORTS: frozenset[str] = frozenset(
 )
 
 
+def _is_allowed_module(module_name: str) -> bool:
+    return any(module_name == allowed or module_name.startswith(f"{allowed}.") for allowed in _ALLOWED_IMPORTS)
+
+
 def run_strategy(
     source: str,
     price_data: pd.Series | pd.DataFrame,
@@ -128,11 +132,11 @@ def _validate_imports(source: str) -> None:
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for name in node.names:
-                if name.name.split(".")[0] not in _ALLOWED_IMPORTS:
+                if not _is_allowed_module(name.name):
                     raise SandboxError(f"Disallowed import: {name.name}")
         elif isinstance(node, ast.ImportFrom):
             mod = node.module or ""
-            if mod.split(".")[0] not in _ALLOWED_IMPORTS:
+            if not _is_allowed_module(mod):
                 raise SandboxError(f"Disallowed import from: {mod}")
 
 
@@ -150,6 +154,7 @@ def _safe_builtins() -> dict[str, Any]:
             "abs", "all", "any", "bool", "dict", "enumerate", "float", "int",
             "len", "list", "map", "max", "min", "range", "round", "set",
             "slice", "sorted", "str", "sum", "tuple", "type", "zip", "isinstance",
+            "__import__",
             "True", "False", "None",
         )
         if hasattr(builtins, name)

@@ -12,6 +12,7 @@ This agent only produces it.
 
 from __future__ import annotations
 
+import ast
 import re
 from dataclasses import dataclass
 
@@ -112,6 +113,10 @@ Write the strategy function."""
         )
         source = _extract_code(response.text)
         if "def strategy" not in source:
+            return OfflineCodeAgent().render(hypothesis)
+        try:
+            ast.parse(source)
+        except SyntaxError:
             return OfflineCodeAgent().render(hypothesis)
         return CodeArtifact(source=source)
 
