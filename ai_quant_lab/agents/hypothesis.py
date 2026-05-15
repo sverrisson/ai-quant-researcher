@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ai_quant_lab.agents.base import AgentMessage, call_claude, extract_first_json
+from ai_quant_lab.agents.offline import OfflineHypothesisAgent
 
 
 SYSTEM_PROMPT = """You are a quantitative researcher proposing trading strategies.
@@ -102,8 +103,15 @@ Propose ONE new strategy. Output JSON only, matching the schema."""
             temperature=self.temperature,
             max_tokens=1024,
         )
-        payload = extract_first_json(response.text)
-        return _payload_to_hypothesis(payload)
+        try:
+            payload = extract_first_json(response.text)
+            return _payload_to_hypothesis(payload)
+        except ValueError:
+            return OfflineHypothesisAgent().propose(
+                market_description=market_description,
+                prior_trials_summary=prior_trials_summary,
+                avoid_correlation_with=avoid_correlation_with,
+            )
 
 
 def _payload_to_hypothesis(payload: dict) -> StrategyHypothesis:

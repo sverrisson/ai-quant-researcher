@@ -26,6 +26,7 @@ from typing import Literal
 
 from ai_quant_lab.agents.base import AgentMessage, call_claude, extract_first_json
 from ai_quant_lab.agents.hypothesis import StrategyHypothesis
+from ai_quant_lab.agents.offline import OfflineCriticAgent
 
 
 MarketType = Literal["equities", "crypto", "futures", "options", "fx", "generic"]
@@ -157,10 +158,13 @@ Argue against this hypothesis. Output JSON only."""
             temperature=self.temperature,
             max_tokens=512,
         )
-        payload = extract_first_json(response.text)
-        verdict = str(payload.get("verdict", "kill")).lower()
-        return CriticVerdict(
-            passes=(verdict == "pass"),
-            reasoning=str(payload.get("reasoning", "")),
-            kill_reasons=[str(r) for r in payload.get("kill_reasons", [])],
-        )
+        try:
+            payload = extract_first_json(response.text)
+            verdict = str(payload.get("verdict", "kill")).lower()
+            return CriticVerdict(
+                passes=(verdict == "pass"),
+                reasoning=str(payload.get("reasoning", "")),
+                kill_reasons=[str(r) for r in payload.get("kill_reasons", [])],
+            )
+        except ValueError:
+            return OfflineCriticAgent().review(hypothesis)

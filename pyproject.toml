@@ -39,6 +39,7 @@ figures = ["matplotlib>=3.8"]
 
 [project.scripts]
 ai-quant-lab = "ai_quant_lab.run:main"
+ai_quant_lab = "ai_quant_lab.run:main"
 
 [project.urls]
 Homepage = "https://github.com/yourname/ai-quant-lab"

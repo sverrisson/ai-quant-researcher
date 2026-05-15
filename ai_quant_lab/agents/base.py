@@ -36,6 +36,7 @@ class AgentResponse:
 
 
 _JSON_BLOCK_RE = re.compile(r"\{[\s\S]*\}")
+_AVAILABLE_MODEL_RE = re.compile(r"Available model:\s*`([^`]+)`")
 
 
 def extract_first_json(text: str) -> dict[str, Any]:
@@ -101,7 +102,7 @@ def call_claude(
     except ImportError as exc:
         raise ImportError("Install the SDK: pip install anthropic") from exc
 
-    client = Anthropic(api_key=api_key)
+    client = Anthropic(api_key=api_key, base_url=settings.anthropic_api_base_url)
     use_model = model or settings.model
 
     system_blocks: list[dict[str, Any]]
@@ -140,9 +141,20 @@ def call_claude(
             )
         except Exception as exc:  # noqa: BLE001 — broad catch is intentional; we retry below
             last_error = exc
+            available_model = _extract_available_model(str(exc))
+            if available_model and available_model != use_model:
+                use_model = available_model
+                continue
             if attempt == max_retries - 1:
                 break
             time.sleep(delay)
             delay *= 2.0
 
     raise RuntimeError(f"Claude call failed after {max_retries} attempts: {last_error}")
+
+
+def _extract_available_model(message: str) -> str | None:
+    match = _AVAILABLE_MODEL_RE.search(message)
+    if match:
+        return match.group(1)
+    return None

@@ -18,7 +18,7 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 cp .env.example .env                     # fill in ANTHROPIC_API_KEY (optional for examples 1-5)
 python examples/05_deflated_sharpe_demo.py   # see the multiple-testing kill in action
-python -m ai_quant_lab.run --iterations 10 --target 2   # full research loop
+uv run ai_quant_lab --iterations 10 --target 2   # full research loop
 ```
 
 That's it. Examples 1-5 run without an API key on synthetic data. Examples

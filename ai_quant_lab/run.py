@@ -45,7 +45,11 @@ def main(argv: list[str] | None = None) -> int:
     print(f"[run] target survivors: {args.target}  max iterations: {args.iterations}")
 
     with ResearchMemory(db_path) as memory:
-        artifacts, survivors = run_research_loop(price_data, loop_config, memory=memory)
+        artifacts, survivors = run_research_loop(
+            price_data,
+            loop_config,
+            memory=memory,
+        )
 
     print()
     print(f"[run] artifacts: {len(artifacts)} iterations, {sum(a.accepted for a in artifacts)} accepted")
@@ -157,7 +161,7 @@ def _load_prices(args: argparse.Namespace) -> pd.Series:
     daily_vol = 0.16 / np.sqrt(args.annualization)
     shocks = rng.normal(loc=daily_drift, scale=daily_vol, size=args.n_bars)
     prices = 100.0 * np.exp(np.cumsum(shocks))
-    index = pd.bdate_range(end=pd.Timestamp.utcnow().normalize(), periods=args.n_bars)
+    index = pd.bdate_range(end=pd.Timestamp.now('UTC').normalize(), periods=args.n_bars)
     return pd.Series(prices, index=index, name="close")
 
 

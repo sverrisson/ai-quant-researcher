@@ -17,6 +17,7 @@ from dataclasses import dataclass
 
 from ai_quant_lab.agents.base import AgentMessage, call_claude
 from ai_quant_lab.agents.hypothesis import StrategyHypothesis
+from ai_quant_lab.agents.offline import OfflineCodeAgent
 
 
 SYSTEM_PROMPT_SINGLE = """You are a Python developer translating quantitative hypotheses into code.
@@ -109,7 +110,10 @@ Write the strategy function."""
             temperature=self.temperature,
             max_tokens=1024,
         )
-        return CodeArtifact(source=_extract_code(response.text))
+        source = _extract_code(response.text)
+        if "def strategy" not in source:
+            return OfflineCodeAgent().render(hypothesis)
+        return CodeArtifact(source=source)
 
 
 def _format_spec(spec: dict) -> str:
