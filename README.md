@@ -19,6 +19,7 @@ pip install -e ".[dev]"
 cp .env.example .env                     # fill in ANTHROPIC_API_KEY (optional for examples 1-5)
 python examples/05_deflated_sharpe_demo.py   # see the multiple-testing kill in action
 uv run ai_quant_lab --iterations 10 --target 2   # full research loop
+uv run .venv/bin/python examples/10_experiment_grid.py
 ```
 
 That's it. Examples 1-5 run without an API key on synthetic data. Examples
